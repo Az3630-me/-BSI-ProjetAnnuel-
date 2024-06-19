@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-from choice.forms_cookies import formulaire_cookies
-from choice.forms_organisation import form_organisation
+from user_choice.cookies.forms_cookies import formulaire_cookies
+from user_choice import forms_organisation
 
 def show_prout():
     print("prout")
@@ -31,7 +31,7 @@ def main():
     backend_button = ttk.Button(main_frame, text="Visualisez les connexions entre les différents sites web que vous visitez", command=formulaire_cookies)
     backend_button.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
 
-    form_button = ttk.Button(main_frame, text="Visualisez les informations que les organisations ont sur vous", command=form_organisation)
+    form_button = ttk.Button(main_frame, text="Visualisez les informations que les organisations ont sur vous", command=forms_organisation.form_organisation)
     form_button.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
 
     # Ajout d'un effet de survol pour les boutons
