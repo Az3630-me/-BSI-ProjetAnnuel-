@@ -2,6 +2,9 @@ import os
 import tkinter as tk
 from tkinter import ttk
 import time
+import threading
+
+from user_choice.research_tools.display_result import display_result_pseudo_email
 
 time_time = time.strftime('%Y%m%d_%H')
 
@@ -74,20 +77,38 @@ def run_tools(email: str, pseudo: str):
         current_step += 1
         progress_bar['value'] = (current_step / total_steps) * 100
         root.update_idletasks()  # Mettre à jour l'interface graphique
-        time.sleep(1)  # Simuler une pause pour chaque étape
 
-    # Exécuter les tâches
-    if email:
-        run_CLI_holehe(email)
-        advance_progress()
-        run_CLI_blackbird_email(email)
-        advance_progress()
+    # Fonction pour fermer la fenêtre
+    def close_window():
+        root.destroy()
 
-    if pseudo:
-        run_CLI_blackbird_pseudo(pseudo)
-        advance_progress()
-        run_CLI_sherlock(pseudo)
-        advance_progress()
+    # Fonction pour exécuter les tâches en arrière-plan
+    def run_tasks():
+        if email:
+            run_CLI_holehe(email)
+            advance_progress()
+            run_CLI_blackbird_email(email)
+            advance_progress()
 
-    # Attendre la fin des tâches avant de fermer la fenêtre
+        if pseudo:
+            run_CLI_blackbird_pseudo(pseudo)
+            advance_progress()
+            run_CLI_sherlock(pseudo)
+            advance_progress()
+
+        # Chemins vers les rapports
+        report_blackbird_pseudo = os.path.join(report_dir, "blackbird_pseudo_report.txt")
+        report_sherlock_pseudo = os.path.join(report_dir, "sherlock_pseudo_report.txt")
+        report_blackbird_email = os.path.join(report_dir, "blackbird_email_report.txt")
+        report_holehe_email = os.path.join(report_dir, "holehe_email_report.txt")
+
+        # Appeler la fonction display_result_pseudo_email avec les rapports générés
+        display_result_pseudo_email(report_sherlock_pseudo, report_blackbird_pseudo, report_blackbird_email, report_holehe_email, pseudo, email)
+
+        # Fermer la fenêtre après un court délai
+        root.after(1000, close_window)
+
+    # Exécuter les tâches en arrière-plan pour ne pas bloquer l'interface
+    threading.Thread(target=run_tasks).start()
+
     root.mainloop()
