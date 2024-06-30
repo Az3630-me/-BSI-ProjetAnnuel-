@@ -1,6 +1,19 @@
 import re
 import tkinter as tk
 from tkinter import ttk
+import webbrowser
+
+# Fonction pour ouvrir des sites web pour une adresse email
+def run_WEB_email_websites(email):
+    webbrowser.open_new(f"https://www.hudsonrock.com/email-search?email={email}")
+    webbrowser.open_new_tab(f"https://haveibeenpwned.com/")
+
+# Fonction pour ouvrir des sites web pour un pseudo
+def run_WEB_pseudo_websites(pseudo):
+    webbrowser.open_new(f"http://www.skymem.info/srch?q={pseudo}&ss=srch")
+    webbrowser.open_new_tab(f"https://whatsmyname.app/?q={pseudo}")
+
+
 def extract_sites_web(line):
     """Extract the pseudo from a line of text."""
     match = re.search(r'\] (.+)$', line)
@@ -24,14 +37,14 @@ def get_pseudos(file_path_1, file_path_2):
 
     return pseudos
 
-def get_sites_webs_from_pseudo(listbox, file_path_1, file_path_2):#, file_path_2):
+def get_sites_webs_from_pseudo(listbox, file_path_1, file_path_2):
     """Read files and extract the pseudos."""
     if file_path_1 and file_path_2:  # Check if both file paths are not empty
         pseudos = get_pseudos(file_path_1, file_path_2)
-        
+       
         # Clear listbox
         listbox.delete(0, tk.END)
-        
+       
         # Check if there are pseudos to display
         if pseudos:
             for pseudo in pseudos:
@@ -42,15 +55,12 @@ def get_sites_webs_from_pseudo(listbox, file_path_1, file_path_2):#, file_path_2
     else:
         listbox.insert(tk.END, "Fichiers non spécifiés")
 
-
-from urllib.parse import urlparse
-
 def remove_last_characters(chaine):
     return chaine[:-4]
 
-def get_sites_webs_from_emails(listbox, file_path_3, file_path_4):#	, file_path_4):
+def get_sites_webs_from_emails(listbox, file_path_3, file_path_4):
     """Read files and extract the sites web associated with emails."""
-    if file_path_3 :#and file_path_4:  # Check if both file paths are not empty
+    if file_path_3:  # Check if both file paths are not empty
         web_sites = []
 
         # Read and process file_path_3 (assuming it contains email related sites)
@@ -59,7 +69,7 @@ def get_sites_webs_from_emails(listbox, file_path_3, file_path_4):#	, file_path_
                 urls = extract_sites_web(line.strip())
                 if urls:
                     web_sites.append(urls)
-        
+       
         # Add separator and additional information
         web_sites.append("#####################################")
         web_sites.append("Site web trouvé par le deuxième outil")
@@ -72,10 +82,10 @@ def get_sites_webs_from_emails(listbox, file_path_3, file_path_4):#	, file_path_
                 url = remove_last_characters(line.strip())  # Remove trailing characters and strip whitespace
                 urls = extract_sites_web(url)
                 web_sites.append(urls)
-        
+       
         # Clear listbox
         listbox.delete(0, tk.END)
-        
+       
         # Check if there are web sites to display
         if web_sites:
             for site in web_sites:
@@ -91,9 +101,14 @@ def none_email(listbox):
 def none_pseudo(listbox):
     listbox.insert(tk.END, "Il n'y avait pas de pseudo en entrée")
 
+def generate_web_search(listbox):
+    """Function to simulate generating web searches."""
+    # Simulate web searches
+    searches = ["Recherche web 1", "Recherche web 2", "Recherche web 3"]
+    for search in searches:
+        listbox.insert(tk.END, search)
 
-
-def display_result_pseudo_email(report_path_1, report_path_2, report_path_3, report_path_4, pseudo, email):# , report_path_3, report_path_4, pseudo, email):
+def display_result_pseudo_email(report_path_1, report_path_2, report_path_3, report_path_4, pseudo, email):
     """Create and display the main window."""
     # Create the main window
     window = tk.Tk()
@@ -131,24 +146,33 @@ def display_result_pseudo_email(report_path_1, report_path_2, report_path_3, rep
 
     # Button to load the pseudos or display message if no pseudo
     if pseudo:
-        load_button_pseudo = ttk.Button(frame_pseudo, text="Charger les pseudos", 
-                                        command=lambda: get_sites_webs_from_pseudo(listbox_pseudo, report_path_1, report_path_2))#, report_path_2))
+        load_button_pseudo = ttk.Button(frame_pseudo, text="Charger les pseudos",
+                                        command=lambda: get_sites_webs_from_pseudo(listbox_pseudo, report_path_1, report_path_2))
         load_button_pseudo.pack(pady=10)
+        # Add button to generate web searches for pseudos
+        generate_button_pseudo = ttk.Button(frame_pseudo, text="Générer les recherches web",
+                                            command=lambda: run_WEB_pseudo_websites(pseudo))
+        generate_button_pseudo.pack(pady=10)
     else:
-        load_button_pseudo = ttk.Button(frame_pseudo, text="Pas de pseudo", 
+        load_button_pseudo = ttk.Button(frame_pseudo, text="Pas de pseudo",
                                         command=lambda: none_pseudo(listbox_pseudo))
         load_button_pseudo.pack(pady=10)
 
     # Button to load the emails or display message if no email
     if email:
-        load_button_email = ttk.Button(frame_email, text="Charger les sites web trouvés", 
-                                       command=lambda: get_sites_webs_from_emails(listbox_email, report_path_3, report_path_4))#, report_path_4))
+        load_button_email = ttk.Button(frame_email, text="Charger les sites web trouvés",
+                                       command=lambda: get_sites_webs_from_emails(listbox_email, report_path_3, report_path_4))
         load_button_email.pack(pady=10)
+       
+        # Add button to generate web searches for emails
+        generate_button_email = ttk.Button(frame_email, text="Générer les recherches web",
+                                           command=lambda: run_WEB_email_websites(email))
+        generate_button_email.pack(pady=10)
     else:
-        load_button_email = ttk.Button(frame_email, text="Pas d'email", 
+        load_button_email = ttk.Button(frame_email, text="Pas d'email",
                                        command=lambda: none_email(listbox_email))
         load_button_email.pack(pady=10)
 
-    # Run the main loop
+    # Start the Tkinter event loop
     window.mainloop()
 
