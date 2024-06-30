@@ -8,13 +8,27 @@ from user_choice.research_tools.display_result import display_result_pseudo_emai
 
 time_time = time.strftime('%Y%m%d_%H')
 def run_CLI_holehe(email:str):
-	chemin_fichier_rapport = f"{os.getcwd()}/datracker/reports/report_{time_time}/holehe_email_report.txt"
-	#with open(f"datracker/reports/report_{time_time}/holehe_report.txt", "a", encoding="UTF-8") as H_report:
-	#	H_report.write(f"\n\n\n\n{time.strftime('%Y/%m/%d-%H:%M:%S')}")
-	os.makedirs(chemin_fichier_rapport, exist_ok=True)
-       
-	os.system(f"holehe {email} > chemin_fichier_rapport")
+    chemin_fichier_rapport = f"{os.getcwd()}/datracker/reports/report_{time_time}/holehe_email_report.txt"
+    #with open(f"datracker/reports/report_{time_time}/holehe_report.txt", "a", encoding="UTF-8") as H_report:
+    #	H_report.write(f"\n\n\n\n{time.strftime('%Y/%m/%d-%H:%M:%S')}")
+    # Créer le dossier de rapport s'il n'existe pas déjà
+    chemin_reports = os.path.dirname(chemin_fichier_rapport)
+    os.makedirs(chemin_reports, exist_ok=True)
+    os.system(f"holehe {email} > chemin_fichier_rapport")
+    # Chemin complet du fichier de rapport Blackbird
+    chemin_fichier_rapport = f"{os.getcwd()}/datracker/reports/report_{time_time}/holehe_email_report.txt"
 
+    # Créer le dossier de rapport s'il n'existe pas déjà
+    chemin_reports = os.path.dirname(chemin_fichier_rapport)
+    os.makedirs(chemin_reports, exist_ok=True)
+
+    # Commande Blackbird avec redirection vers le fichier de rapport
+    commande_holehe = f"holehe {email}  > {chemin_fichier_rapport} 2>&1"
+
+    # Exécution de la commande Blackbird sans afficher le résultat dans le terminal
+    os.system(commande_holehe)
+
+    
 
 def run_CLI_blackbird_email(email: str):
     # Chemin complet du fichier de rapport Blackbird
@@ -32,8 +46,7 @@ def run_CLI_blackbird_email(email: str):
 
     # Vérifier si le fichier a été créé
     if os.path.exists(chemin_fichier_rapport):
-        print(f"Le fichier de rapport a été créé : {chemin_fichier_rapport}")
-       
+        
         # Supprimer les 17 premières lignes du fichier
         with open(chemin_fichier_rapport, 'r') as file:
             lines = file.readlines()
@@ -58,7 +71,7 @@ def run_CLI_blackbird_pseudo(pseudo: str):
 
     # Vérifier si le fichier a été créé
     if os.path.exists(chemin_fichier_rapport):
-        print(f"Le fichier de rapport a été créé : {chemin_fichier_rapport}")
+
        
         # Supprimer les 17 premières lignes du fichier
         with open(chemin_fichier_rapport, 'r') as file:
@@ -148,7 +161,7 @@ def run_tools(email: str, pseudo: str):
     report_sherlock_pseudo = os.path.join(report_dir, "sherlock_pseudo_report.txt")
     report_blackbird_email = os.path.join(report_dir, "blackbird_email_report.txt")
     report_holehe_email = os.path.join(report_dir, "holehe_email_report.txt")
-    display_result_pseudo_email(report_sherlock_pseudo, report_blackbird_pseudo, report_blackbird_email, report_blackbird_email, pseudo, email)#, report_blackbird_pseudo, report_sherlock_pseudo, report_blackbird_email, report_holehe_email, pseudo, email)
+    display_result_pseudo_email(report_sherlock_pseudo, report_blackbird_pseudo, report_blackbird_email, report_holehe_email, pseudo, email)#, report_blackbird_pseudo, report_sherlock_pseudo, report_blackbird_email, report_holehe_email, pseudo, email)
 
 # Test des fonctions
 #run_tools("test.test@yopmail.com", "test.test")
