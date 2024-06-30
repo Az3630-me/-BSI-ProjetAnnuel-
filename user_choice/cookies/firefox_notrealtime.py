@@ -1,48 +1,87 @@
-import os
 import sqlite3
-import matplotlib.pyplot as plt
 import networkx as nx
+import matplotlib.pyplot as plt
+from collections import defaultdict
 
-def get_mozilla_cookies(cookies_path):
-    if not os.path.exists(cookies_path):
-        print("Le chemin spécifié vers le fichier de cookies n'existe pas.")
-        return []
-    conn = sqlite3.connect(cookies_path)
-    c = conn.cursor()
-    c.execute("SELECT host, name, value FROM moz_cookies")
-    cookies = c.fetchall()
-    conn.close()
-    cookie_sites = {}
-    for site, cookie, value in cookies:
-        if cookie not in cookie_sites:
-            cookie_sites[cookie] = set()  # Permet de gérer la collecte unique de site web pour chaque cookie
-        cookie_sites[cookie].add(site)
+# Chemin vers la base de données cookies.sqlite de Firefox
+#firefox_cookies_db = '/home/kali/Documents/cookies.sqlite'
 
-    # Ne garder que les cookies présents sur plusieurs sites différents
-    filtered_cookies = [(site, cookie) for cookie, sites in cookie_sites.items() if len(sites) > 1 for site in sites]
+# Fonction pour créer et visualiser le graphe des cookies regroupés par cookie
+def get_mozilla_cookies(firefox_cookies_db):
+    conn = sqlite3.connect(firefox_cookies_db)
+    cursor = conn.cursor()
 
-    return filtered_cookies
+    # Requête SQL pour récupérer les informations sur les cookies
+    query = """
+        SELECT
+            host,
+            name
+        FROM
+            moz_cookies
+    """
 
-def plot_cookie_network(cookies):
+    cursor.execute(query)
+    cookies = cursor.fetchall()
+
+    # Regrouper les sites par cookie
+    cookie_sites = defaultdict(list)
+    for host, name in cookies:
+        cookie_sites[name].append(host)
+
+    # Création d'un graphe non dirigé pour les cookies regroupés
     G = nx.Graph()
-    for cookie in cookies:
-        website = cookie[0]
-        cookie_name = cookie[1]
-        G.add_node(cookie_name, type='cookie')
-        G.add_node(website, type='website')
-        G.add_edge(website, cookie_name)
 
+    for cookie, sites in cookie_sites.items():
+        if len(sites) > 1:
+            # Ajouter les cookies comme des nœuds avec la forme triangle (^)
+            G.add_node(cookie, shape='^', color='green', node_type='cookie')
+            # Ajouter des arêtes entre les sites et le cookie
+            for site in sites:
+                G.add_edge(cookie, site)
+
+            # Ajouter les sites comme des nœuds avec la forme de cercle (o)
+            for site in sites:
+                G.add_node(site, shape='o', color='skyblue', node_type='site')
+
+    # Définir les attributs des nœuds pour le dessin
+    node_shapes = nx.get_node_attributes(G, 'shape')
+    node_colors = nx.get_node_attributes(G, 'color')
+    node_types = nx.get_node_attributes(G, 'node_type')
+
+    # Définir la disposition du graphe
     pos = nx.spring_layout(G)
-    cookie_nodes = [node for node, attr in G.nodes(data=True) if attr['type'] == 'cookie']
-    website_nodes = [node for node, attr in G.nodes(data=True) if attr['type'] == 'website']
 
-    nx.draw_networkx_nodes(G, pos, nodelist=cookie_nodes, node_size=500, node_color='lightblue', alpha=0.8, node_shape='s')
-    nx.draw_networkx_nodes(G, pos, nodelist=website_nodes, node_size=500, node_color='lightgreen', alpha=0.8)
-    nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5)
+    # Affichage du graphe avec les étiquettes
+    plt.figure(figsize=(12, 8))
 
-    nx.draw_networkx_labels(G, pos, labels={node: node for node in website_nodes}, font_size=10, font_family='sans-serif')
-    nx.draw_networkx_labels(G, pos, labels={node: node for node in cookie_nodes}, font_size=10, font_family='sans-serif')
+    # Dessiner les nœuds selon leurs attributs définis
+    for node, shape in node_shapes.items():
+        if node_types[node] == 'cookie':
+            nx.draw_networkx_nodes(G, pos, nodelist=[node], node_shape=shape, node_color=node_colors[node], node_size=1500)
+        else:
+            nx.draw_networkx_nodes(G, pos, nodelist=[node], node_shape=shape, node_color=node_colors[node], node_size=1000)
 
-    plt.title('Graphe des liens entre cookies non essentiels et sites web visités')
-    plt.axis('off')
+    # Dessiner les étiquettes des nœuds (cookies et sites)
+    node_labels = {}
+    for node in G.nodes():
+        if node_types[node] == 'cookie':
+            # Récupérer le nom du cookie à partir de node
+            node_labels[node] = node
+        else:
+            # Récupérer le nom complet du site (host) à partir de node
+            node_labels[node] = node
+
+    nx.draw_networkx_labels(G, pos, labels=node_labels, font_size=10, font_color='black', font_weight='bold')
+
+    # Dessiner les arêtes
+    nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color='gray', arrows=False)
+
+    # Afficher le graphe
+    plt.title('Graphe des relations entre les sites via les cookies de Firefox (cookies en triangle, sites en cercle)')
+    plt.tight_layout()
     plt.show()
+
+    conn.close()
+
+
+	

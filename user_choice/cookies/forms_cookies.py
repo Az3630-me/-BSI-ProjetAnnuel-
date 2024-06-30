@@ -16,15 +16,12 @@ def ouvrir_fichier(navigateur_selectionne):
     if fichier:
         if navigateur_selectionne == "Firefox":
             # Lire les cookies du fichier sélectionné pour Firefox
-            the_cookies = fr.get_mozilla_cookies(fichier)
-            # Traiter les cookies extraits
-            fr.plot_cookie_network(the_cookies)
+            fr.get_mozilla_cookies(fichier)
+           
         else:
                 # Lire les cookies du fichier sélectionné pour Chrome
-            the_cookies = ch.get_chrome_cookies(fichier) 
-                # Traiter les cookies extraits
-            ch.plot_cookie_network(the_cookies)#choice.cookies.plot_cookie_network(choice.cookies.get_chrome_cookies(fichier))  # Appel de la fonction de traitement
-                # Gérer les erreurs de lecture ou de traitement des cookies
+            ch.get_default_cookies(fichier) 
+               
             
 
 def formulaire_cookies():
@@ -43,7 +40,7 @@ def formulaire_cookies():
     label_explicatif.pack(pady=10)
 
     # Création d'un menu déroulant pour choisir le navigateur
-    liste_navigateurs = ["Chrome", "Firefox"]  # Liste des navigateurs pris en charge
+    liste_navigateurs = ["Chrome", "Firefox", "Edge"]  # Liste des navigateurs pris en charge
     menu_deroulant = ttk.Combobox(root, values=liste_navigateurs, state="readonly")
     menu_deroulant.current(0)  
     menu_deroulant.pack(pady=10)

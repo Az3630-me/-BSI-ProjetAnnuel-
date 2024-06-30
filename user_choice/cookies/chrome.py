@@ -1,74 +1,88 @@
-import os
 import sqlite3
-import matplotlib.pyplot as plt
 import networkx as nx
+import matplotlib.pyplot as plt
+from collections import defaultdict
 
-def get_chrome_cookies(cookies_path):
+
+
+# Fonction pour créer et visualiser le graphe des cookies regroupés par cookie
+def get_default_cookies(firefox_cookies_db):
+    conn = sqlite3.connect(firefox_cookies_db)
+    cursor = conn.cursor()
+
+    # Requête SQL pour récupérer les informations sur les cookies
+    query = """
+        SELECT
+            host_key,
+            name
+        FROM
+            cookies
     """
-    Récupère les cookies non essentiels d'un fichier de cookies Chrome et ne garde que ceux qui apparaissent sur plusieurs sites.
-    Args:
-        cookies_path (str): Le chemin d'accès au fichier de cookies Chrome.
-    Returns:
-        list: Une liste de tuples contenant (site web, nom du cookie).
-    """
-    if not os.path.exists(cookies_path):
-        print("Le chemin spécifié vers le fichier de cookies n'existe pas.")
-        return []
 
-    try:
-        conn = sqlite3.connect(cookies_path)
-        c = conn.cursor()
-        c.execute("SELECT host_key, name FROM cookies")  # Filtre les cookies non essentiels
-        cookies = c.fetchall()
-        conn.close()
+    cursor.execute(query)
+    cookies = cursor.fetchall()
 
-        cookie_sites = {}
-        for site, cookie in cookies:
-            if cookie not in cookie_sites:
-                cookie_sites[cookie] = set() #Permet de gérer la collecte unique de site web pour chaque cookie
-            cookie_sites[cookie].add(site)
+    # Regrouper les sites par cookie
+    cookie_sites = defaultdict(list)
+    for host, name in cookies:
+        cookie_sites[name].append(host)
 
-        # Ne garder que les cookies présents sur plusieurs sites différents
-        filtered_cookies = [(site, cookie) for cookie, sites in cookie_sites.items() if len(sites) > 1 for site in sites]
-
-        return filtered_cookies
-    except sqlite3.Error as e:
-        print(f"Erreur lors de la lecture des cookies : {e}")
-        return []
-
-def plot_cookie_network(cookies):
-    """
-    Crée un graphe des liens entre les cookies non essentiels et les sites web visités.
-    Args:
-        cookies (list): Une liste de tuples contenant (site web, nom du cookie).
-    """
+    # Création d'un graphe non dirigé pour les cookies regroupés
     G = nx.Graph()
-    for cookie in cookies:
-        website = cookie[0]
-        cookie_name = cookie[1]
-        G.add_node(cookie_name, type='cookie')
-        G.add_node(website, type='website')
-        G.add_edge(website, cookie_name)
 
+    for cookie, sites in cookie_sites.items():
+        if len(sites) > 1:
+            # Ajouter les cookies comme des nœuds avec la forme triangle (^)
+            G.add_node(cookie, shape='^', color='green', node_type='cookie')
+            # Ajouter des arêtes entre les sites et le cookie
+            for site in sites:
+                G.add_edge(cookie, site)
+
+            # Ajouter les sites comme des nœuds avec la forme de cercle (o)
+            for site in sites:
+                G.add_node(site, shape='o', color='skyblue', node_type='site')
+
+    # Définir les attributs des nœuds pour le dessin
+    node_shapes = nx.get_node_attributes(G, 'shape')
+    node_colors = nx.get_node_attributes(G, 'color')
+    node_types = nx.get_node_attributes(G, 'node_type')
+
+    # Définir la disposition du graphe
     pos = nx.spring_layout(G)
 
-    cookie_nodes = [node for node, attr in G.nodes(data=True) if attr['type'] == 'cookie']
-    website_nodes = [node for node, attr in G.nodes(data=True) if attr['type'] == 'website']
+    # Affichage du graphe avec les étiquettes
+    plt.figure(figsize=(12, 8))
 
-    nx.draw_networkx_nodes(G, pos, nodelist=cookie_nodes, node_size=500, node_color='lightblue', alpha=0.8, node_shape='s')
-    nx.draw_networkx_nodes(G, pos, nodelist=website_nodes, node_size=500, node_color='lightgreen', alpha=0.8)
-    nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5)
+    # Dessiner les nœuds selon leurs attributs définis
+    for node, shape in node_shapes.items():
+        if node_types[node] == 'cookie':
+            nx.draw_networkx_nodes(G, pos, nodelist=[node], node_shape=shape, node_color=node_colors[node], node_size=1500)
+        else:
+            nx.draw_networkx_nodes(G, pos, nodelist=[node], node_shape=shape, node_color=node_colors[node], node_size=1000)
 
-    for website in website_nodes:
-        nx.draw_networkx_nodes(G, pos, nodelist=[website], node_size=0)
-        nx.draw_networkx_labels(G, pos, labels={website: website}, font_size=10, font_family='sans-serif')
+    # Dessiner les étiquettes des nœuds (cookies et sites)
+    node_labels = {}
+    for node in G.nodes():
+        if node_types[node] == 'cookie':
+            # Récupérer le nom du cookie à partir de node
+            node_labels[node] = node
+        else:
+            # Récupérer le nom complet du site (host) à partir de node
+            node_labels[node] = node
 
-    for cookie_node in cookie_nodes:
-        if "essential" not in cookie_node.lower():  # Vérifier si le cookie est essentiel
-            nx.draw_networkx_labels(G, pos, labels={cookie_node: cookie_node}, font_size=10, font_family='sans-serif')
+    nx.draw_networkx_labels(G, pos, labels=node_labels, font_size=10, font_color='black', font_weight='bold')
 
-    plt.title('Graphe des liens entre cookies non essentiels et sites web visités')
-    plt.axis('off')
+    # Dessiner les arêtes
+    nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color='gray', arrows=False)
+
+    # Afficher le graphe
+    plt.title('Graphe des relations entre les sites via les cookies de Firefox (cookies en triangle, sites en cercle)')
+    plt.tight_layout()
     plt.show()
 
+    conn.close()
 
+if __name__ == "__main__":
+    visualiser_graphe_cookies(firefox_cookies_db)
+
+	
