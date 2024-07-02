@@ -2,6 +2,7 @@ import re
 import tkinter as tk
 from tkinter import ttk
 import webbrowser
+import tldextract
 
 # Fonction pour ouvrir des sites web pour une adresse email
 def run_WEB_email_websites(email):
@@ -13,11 +14,19 @@ def run_WEB_pseudo_websites(pseudo):
     webbrowser.open_new(f"http://www.skymem.info/srch?q={pseudo}&ss=srch")
     webbrowser.open_new_tab(f"https://whatsmyname.app/?q={pseudo}")
 
+def extract_domain(url):
+    """Extract the domain name from a URL."""
+    ext = tldextract.extract(url)
+    return f"{ext.domain}.{ext.suffix}"
 
 def extract_sites_web(line):
     """Extract the pseudo from a line of text."""
     match = re.search(r'\] (.+)$', line)
     return match.group(1) if match else None
+
+def check_symbol(line):
+    """Check if the line contains [+] or [x]."""
+    return '[+]' in line
 
 def get_pseudos(file_path_1, file_path_2):
     """Read files and extract the pseudos."""
@@ -26,15 +35,15 @@ def get_pseudos(file_path_1, file_path_2):
         for line in file:
             pseudo = extract_sites_web(line.strip())
             if pseudo:
-                pseudos.append(pseudo)
+                pseudos.append(extract_domain(pseudo))
     pseudos.append("#####################################")
     pseudos.append("Site web trouvé par le deuxième outil")
     pseudos.append("#####################################")
     if file_path_2:
-       with open(file_path_2, 'r', encoding='utf-8') as file:
-          for line in file:
-              pseudos.append(line.strip())
-
+        with open(file_path_2, 'r', encoding='utf-8') as file:
+            for line in file:
+                pseudos.append(line.strip())
+              
     return pseudos
 
 def get_sites_webs_from_pseudo(listbox, file_path_1, file_path_2):
@@ -48,7 +57,7 @@ def get_sites_webs_from_pseudo(listbox, file_path_1, file_path_2):
         # Check if there are pseudos to display
         if pseudos:
             for pseudo in pseudos:
-                listbox.insert(tk.END, pseudo)
+               listbox.insert(tk.END, pseudo)
         else:
             # Optionally, you can insert a message indicating no pseudos found
             listbox.insert(tk.END, "Aucun pseudo trouvé")
@@ -79,9 +88,10 @@ def get_sites_webs_from_emails(listbox, file_path_3, file_path_4):
         with open(file_path_4, 'r', encoding='utf-8') as file:
             lines = file.readlines()[:-5]  # Read all lines except the last one
             for line in lines:
-                url = remove_last_characters(line.strip())  # Remove trailing characters and strip whitespace
-                urls = extract_sites_web(url)
-                web_sites.append(urls)
+                if check_symbol(line):
+                    url = remove_last_characters(line.strip())  # Remove trailing characters and strip whitespace
+                    urls = extract_sites_web(url)
+                    web_sites.append(urls)
        
         # Clear listbox
         listbox.delete(0, tk.END)
@@ -100,13 +110,6 @@ def none_email(listbox):
 
 def none_pseudo(listbox):
     listbox.insert(tk.END, "Il n'y avait pas de pseudo en entrée")
-
-def generate_web_search(listbox):
-    """Function to simulate generating web searches."""
-    # Simulate web searches
-    searches = ["Recherche web 1", "Recherche web 2", "Recherche web 3"]
-    for search in searches:
-        listbox.insert(tk.END, search)
 
 def display_result_pseudo_email(report_path_1, report_path_2, report_path_3, report_path_4, pseudo, email):
     """Create and display the main window."""
@@ -175,4 +178,3 @@ def display_result_pseudo_email(report_path_1, report_path_2, report_path_3, rep
 
     # Start the Tkinter event loop
     window.mainloop()
-
