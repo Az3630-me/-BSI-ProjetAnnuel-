@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 import webbrowser
 import tldextract
+from user_choice.research_tools.display_error_pseudo_email import *
 
 # Fonction pour ouvrir des sites web pour une adresse email
 def run_WEB_email_websites(email):
@@ -75,9 +76,8 @@ def get_sites_webs_from_emails(listbox, file_path_3, file_path_4):
         # Read and process file_path_3 (assuming it contains email related sites)
         with open(file_path_3, 'r', encoding='utf-8') as file:
             for line in file:
-                urls = extract_sites_web(line.strip())
-                if urls:
-                    web_sites.append(urls)
+                url = extract_sites_web(line.strip())
+                web_sites.append(url)
        
         # Add separator and additional information
         web_sites.append("#####################################")
@@ -91,7 +91,8 @@ def get_sites_webs_from_emails(listbox, file_path_3, file_path_4):
                 if check_symbol(line):
                     url = remove_last_characters(line.strip())  # Remove trailing characters and strip whitespace
                     urls = extract_sites_web(url)
-                    web_sites.append(urls)
+                    if url not in urls:
+                       web_sites.append(urls)
        
         # Clear listbox
         listbox.delete(0, tk.END)
@@ -105,11 +106,7 @@ def get_sites_webs_from_emails(listbox, file_path_3, file_path_4):
             # Optionally, you can insert a message indicating no web sites found
             listbox.insert(tk.END, "Aucun site web trouvé")
 
-def none_email(listbox):
-    listbox.insert(tk.END, "Il n'y avait pas d'e-mail en entrée")
 
-def none_pseudo(listbox):
-    listbox.insert(tk.END, "Il n'y avait pas de pseudo en entrée")
 
 def display_result_pseudo_email(report_path_1, report_path_2, report_path_3, report_path_4, pseudo, email):
     """Create and display the main window."""
@@ -158,7 +155,7 @@ def display_result_pseudo_email(report_path_1, report_path_2, report_path_3, rep
         generate_button_pseudo.pack(pady=10)
     else:
         load_button_pseudo = ttk.Button(frame_pseudo, text="Pas de pseudo",
-                                        command=lambda: none_pseudo(listbox_pseudo))
+                                        command=lambda: none_pseudo_or_error(listbox_pseudo))
         load_button_pseudo.pack(pady=10)
 
     # Button to load the emails or display message if no email
@@ -173,7 +170,7 @@ def display_result_pseudo_email(report_path_1, report_path_2, report_path_3, rep
         generate_button_email.pack(pady=10)
     else:
         load_button_email = ttk.Button(frame_email, text="Pas d'email",
-                                       command=lambda: none_email(listbox_email))
+                                       command=lambda: none_email_or_error(listbox_email, "Il n'y avait pas d'e-mail en entrée"))
         load_button_email.pack(pady=10)
 
     # Start the Tkinter event loop
