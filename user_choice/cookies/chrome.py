@@ -13,10 +13,12 @@ def get_default_cookies(firefox_cookies_db):
     # Requête SQL pour récupérer les informations sur les cookies
     query = """
         SELECT
-            host_key,
+            host,
             name
         FROM
             cookies
+        WHERE
+            expiry IS NOT NULL AND expiry != 0
     """
 
     cursor.execute(query)
