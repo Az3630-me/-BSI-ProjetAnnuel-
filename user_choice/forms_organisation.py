@@ -1,11 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from user_choice.google_dorks.form_dorks import form_main_dorks
-def show_prout():
-    print("prout")
+from user_choice.research_tools.form_personnal_data import main_form_research
 
-def show_caca():
-    print("caca")
 
 def form_organisation():
     root = tk.Tk()
@@ -31,7 +28,7 @@ def form_organisation():
     backend_button = ttk.Button(main_frame, text="Recherches google avancées ", command=form_main_dorks)
     backend_button.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
 
-    form_button = ttk.Button(main_frame, text="Recherche sur vos données", command=show_caca)
+    form_button = ttk.Button(main_frame, text="Recherche sur vos données", command=main_form_research)
     form_button.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
 
     # Ajout d'un effet de survol pour les boutons
@@ -52,8 +49,5 @@ def form_organisation():
     position_down = int(root.winfo_screenheight() / 2 - window_height / 2)
     root.geometry("+{}+{}".format(position_right, position_down))
 
-    # Utilisation d'un logo personnalisé pour l'icône de la fenêtre
-    root.iconbitmap('logo.ico')
 
     root.mainloop()
-
