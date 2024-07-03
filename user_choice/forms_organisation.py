@@ -9,12 +9,20 @@ def form_organisation():
     root.title("Datracker")
 
     # Configuration des couleurs des boutons
-    bouton_bg_color = '#787878'  # Couleur de fond des boutons
-    bouton_fg_color = '#787878'     # Couleur du texte des boutons
+    bouton_bg_color = '#FFFFFF'  # Couleur de fond des boutons
+    bouton_fg_color = '#000000'  # Couleur du texte des boutons
+    bouton_border_color = '#787878'  # Couleur de la bordure des boutons
 
     # Configuration du style des boutons
     style = ttk.Style()
+    style.theme_use('default')
     style.configure('TButton', background=bouton_bg_color, foreground=bouton_fg_color, font=('Helvetica', 12), padding=10)
+    style.map('TButton',
+              background=[('pressed', bouton_bg_color), ('active', bouton_bg_color)],
+              foreground=[('pressed', bouton_fg_color), ('active', bouton_fg_color)],
+              bordercolor=[('pressed', bouton_border_color), ('active', bouton_border_color)],
+              highlightcolor=[('focus', bouton_border_color)],
+              highlightbackground=[('focus', bouton_border_color)])
 
     # Création d'un cadre principal pour organiser les éléments de l'interface
     main_frame = ttk.Frame(root, padding=20)
@@ -25,7 +33,7 @@ def form_organisation():
     title_label.grid(row=0, column=0, columnspan=2, pady=10)
 
     # Ajout des boutons dans une grille pour une meilleure disposition
-    backend_button = ttk.Button(main_frame, text="Recherches google avancées ", command=form_main_dorks)
+    backend_button = ttk.Button(main_frame, text="Recherches google avancées", command=form_main_dorks)
     backend_button.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
 
     form_button = ttk.Button(main_frame, text="Recherche sur vos données", command=main_form_research)
@@ -48,6 +56,5 @@ def form_organisation():
     position_right = int(root.winfo_screenwidth() / 2 - window_width / 2)
     position_down = int(root.winfo_screenheight() / 2 - window_height / 2)
     root.geometry("+{}+{}".format(position_right, position_down))
-
 
     root.mainloop()
